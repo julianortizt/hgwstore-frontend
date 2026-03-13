@@ -6,7 +6,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 
-const ADMIN_WHATSAPP = '573001234567';
+const ADMIN_WHATSAPP = '573159715768';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 const DOLENCIAS_HGW = {
