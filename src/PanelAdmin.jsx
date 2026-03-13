@@ -27,6 +27,7 @@ export default function PanelAdmin({ token, onCerrarSesion }) {
   const [msg, setMsg]               = useState('');
   const [cargando, setCargando]     = useState(false);
   const [busqueda, setBusqueda]     = useState('');
+  const [subiendo, setSubiendo]     = useState(false);
 
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
@@ -59,6 +60,31 @@ export default function PanelAdmin({ token, onCerrarSesion }) {
       mostrarMsg('Error cargando datos', false);
     } finally {
       setCargando(false);
+    }
+  };
+
+  const subirImagen = async (archivo) => {
+    if (!archivo) return;
+    setSubiendo(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', archivo);
+      const r = await fetch(`${API_URL}/api/upload/imagen`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      const d = await r.json();
+      if (d.success) {
+        setForm(prev => ({ ...prev, imagen_url: d.url }));
+        mostrarMsg('Imagen subida ✅');
+      } else {
+        mostrarMsg('Error al subir imagen', false);
+      }
+    } catch (e) {
+      mostrarMsg('Error de conexión', false);
+    } finally {
+      setSubiendo(false);
     }
   };
 
@@ -205,10 +231,9 @@ export default function PanelAdmin({ token, onCerrarSesion }) {
               <h3 style={{ color: VERDE, marginTop: 0 }}>{editando ? '✏️ Editar Producto' : '➕ Nuevo Producto'}</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
                 {[
-                  { key: 'nombre',      label: 'Nombre *',       type: 'text' },
-                  { key: 'precio',      label: 'Precio (COP) *', type: 'number' },
-                  { key: 'stock',       label: 'Stock',          type: 'number' },
-                  { key: 'imagen_url',  label: 'URL Imagen',     type: 'text' },
+                  { key: 'nombre',  label: 'Nombre *',       type: 'text' },
+                  { key: 'precio',  label: 'Precio (COP) *', type: 'number' },
+                  { key: 'stock',   label: 'Stock',          type: 'number' },
                 ].map(({ key, label, type }) => (
                   <div key={key}>
                     <label style={{ fontSize: '12px', color: '#666', display: 'block', marginBottom: '4px' }}>{label}</label>
@@ -216,6 +241,24 @@ export default function PanelAdmin({ token, onCerrarSesion }) {
                       style={{ width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }} />
                   </div>
                 ))}
+                {/* Campo imagen con subida */}
+                <div>
+                  <label style={{ fontSize: '12px', color: '#666', display: 'block', marginBottom: '4px' }}>Imagen del Producto</label>
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <input type="file" accept="image/*" onChange={e => subirImagen(e.target.files[0])}
+                      style={{ display: 'none' }} id="input-imagen" />
+                    <label htmlFor="input-imagen"
+                      style={{ background: VERDE, color: 'white', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', whiteSpace: 'nowrap' }}>
+                      {subiendo ? '⏳ Subiendo...' : '📷 Subir foto'}
+                    </label>
+                    {form.imagen_url && (
+                      <img src={form.imagen_url} alt="" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} />
+                    )}
+                  </div>
+                  <input type="text" value={form.imagen_url} onChange={e => setForm({ ...form, imagen_url: e.target.value })}
+                    placeholder="O pega una URL"
+                    style={{ width: '100%', padding: '6px 10px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '12px', marginTop: '4px', boxSizing: 'border-box' }} />
+                </div>
                 <div>
                   <label style={{ fontSize: '12px', color: '#666', display: 'block', marginBottom: '4px' }}>Categoría</label>
                   <select value={form.categoria} onChange={e => setForm({ ...form, categoria: e.target.value })}
