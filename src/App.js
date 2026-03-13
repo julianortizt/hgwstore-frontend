@@ -569,10 +569,10 @@ function App() {
                 style={{ background: 'transparent', color: 'white', border: '2px solid white', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' }}>
                 Cerrar Sesión
               </button>
-              {usuarioLogueado.tipo === 'vendedor' && (
+              {(usuarioLogueado.tipo === 'vendedor' || usuarioLogueado.tipo === 'admin') && (
                 <button onClick={() => { cargarEstadisticas(); setMostrarPanelAdmin(true); }}
                   style={{ background: '#FF9800', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontWeight: 'bold' }}>
-                  Panel Control
+                  {usuarioLogueado.tipo === 'admin' ? '⚙️ Panel Admin' : 'Panel Control'}
                 </button>
               )}
             </div>
