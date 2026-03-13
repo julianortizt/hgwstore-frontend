@@ -15,6 +15,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import ColorPicker from './ColorPicker';
 import AsistenteIA from './AsistenteIA';
+import PanelAdmin from './PanelAdmin';
 
 // FIX 5: URL base de la API centralizada para fácil cambio en producción
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -524,7 +525,7 @@ function App() {
 
   // ── RENDER ─────────────────────────────────────────────────
   return (
-    <div className="App">
+    <div className="App" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {/* HEADER */}
       <header style={{
         background: `linear-gradient(135deg, ${configCliente.colores.primario} 0%, ${configCliente.colores.secundario} 100%)`,
@@ -620,7 +621,7 @@ function App() {
       )}
 
       {/* CATÁLOGO */}
-      <main style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+      <main style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', width: '100%', flex: 1 }}>
         <div style={{ marginBottom: '30px', marginTop: '30px' }}>
           <h3 style={{ marginBottom: '15px' }}>Categorías:</h3>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -674,39 +675,7 @@ function App() {
         )}
       </main>
 
-      {/* ASISTENTE IA */}
-      <div style={{ position: 'fixed', bottom: '100px', right: '20px', zIndex: 1000 }}>
-        {!mostrarChat ? (
-          <button onClick={() => setMostrarChat(true)}
-            style={{ background: 'linear-gradient(135deg, #2d5016 0%, #4a7c25 100%)', color: 'white', border: 'none', padding: '12px 20px', borderRadius: '12px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            🤖 Asistente VERA
-          </button>
-        ) : (
-          <div style={{ width: '350px', background: 'white', borderRadius: '15px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', overflow: 'hidden' }}>
-            <div style={{ background: '#2d5016', color: 'white', padding: '15px', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>🤖 Asistente VERA</span>
-              <button onClick={() => setMostrarChat(false)} style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', fontSize: '18px', cursor: 'pointer' }}>×</button>
-            </div>
-            <div style={{ height: '300px', overflowY: 'auto', padding: '15px', background: '#f9f9f9' }}>
-              {conversacion.map((msg, index) => (
-                <div key={index} style={{ marginBottom: '10px', padding: '10px', borderRadius: '10px', background: msg.tipo === 'usuario' ? '#2d5016' : 'white', color: msg.tipo === 'usuario' ? 'white' : 'black', maxWidth: '80%', marginLeft: msg.tipo === 'usuario' ? 'auto' : '0', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', whiteSpace: 'pre-line' }}>
-                  {msg.texto}
-                </div>
-              ))}
-              {cargandoIA && <div style={{ textAlign: 'center', color: '#999' }}><em>Escribiendo...</em></div>}
-              <div ref={chatEndRef} />
-            </div>
-            <div style={{ padding: '15px', borderTop: '1px solid #ddd', background: 'white' }}>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <input type="text" value={mensajeUsuario} onChange={e => setMensajeUsuario(e.target.value)} onKeyPress={e => e.key === 'Enter' && enviarMensajeIA()} placeholder="Escribe tu mensaje..." style={{ flex: 1, padding: '10px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px' }} />
-                <button onClick={enviarMensajeIA} disabled={cargandoIA} style={{ background: '#2d5016', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: cargandoIA ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: 'bold', opacity: cargandoIA ? 0.6 : 1 }}>
-                  Enviar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      {/* ASISTENTE IA — gestionado por AsistenteIA.jsx */}
 
       {/* BOTÓN WHATSAPP */}
       <a href="https://wa.me/573159715768?text=Hola%20HGW%20Store!%20Quiero%20información%20sobre%20los%20productos"
@@ -980,82 +949,18 @@ function App() {
         </div>
       )}
 
-      {/* PANEL ADMIN — FIX 4: ColorPicker movido DENTRO del condicional del panel */}
-      {mostrarPanelAdmin && usuarioLogueado && usuarioLogueado.tipo === 'vendedor' && (
-        <div onClick={() => setMostrarPanelAdmin(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 3000, overflowY: 'auto', padding: '20px' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'white', borderRadius: '15px', maxWidth: '900px', width: '100%', padding: '30px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: '2px solid #2d5016', paddingBottom: '15px' }}>
-              <h2 style={{ color: '#2d5016', margin: 0 }}>Panel de Control — {usuarioLogueado.nombre}</h2>
-              <button onClick={() => setMostrarPanelAdmin(false)} style={{ background: '#2d5016', color: 'white', border: 'none', borderRadius: '50%', width: '35px', height: '35px', fontSize: '20px', cursor: 'pointer' }}>×</button>
-            </div>
-
-            {estadisticas ? (
-              <div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-                  {[
-                    { label: 'Total Pedidos',  value: estadisticas.total_pedidos,                  bg: 'linear-gradient(135deg, #2d5016 0%, #4a7c25 100%)' },
-                    { label: 'Total Ventas',   value: `$${estadisticas.total_ventas.toLocaleString()}`, bg: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)' },
-                    { label: 'Clientes',       value: estadisticas.total_clientes,                 bg: 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)' },
-                    { label: 'Vendedores',     value: estadisticas.total_vendedores,               bg: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)' },
-                  ].map(({ label, value, bg }) => (
-                    <div key={label} style={{ background: bg, color: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '32px', fontWeight: 'bold' }}>{value}</div>
-                      <div style={{ fontSize: '14px', opacity: 0.9 }}>{label}</div>
-                    </div>
-                  ))}
-                </div>
-
-                <h3 style={{ color: '#2d5016', marginBottom: '15px' }}>Últimos Pedidos</h3>
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ background: '#f5f5f5' }}>
-                        {['Factura', 'Cliente', 'Total', 'Método'].map(h => (
-                          <th key={h} style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #2d5016' }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {estadisticas.ultimos_pedidos.map((pedido, index) => (
-                        <tr key={index} style={{ borderBottom: '1px solid #eee' }}>
-                          <td style={{ padding: '12px' }}>{pedido.numero_factura}</td>
-                          <td style={{ padding: '12px' }}>{pedido.cliente_nombre}</td>
-                          <td style={{ padding: '12px', fontWeight: 'bold' }}>${pedido.total.toLocaleString()}</td>
-                          <td style={{ padding: '12px' }}>{pedido.metodo_pago}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* FIX 4: ColorPicker ahora dentro del panel admin */}
-                <div style={{ marginTop: '30px', padding: '20px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                  <h3 style={{ marginBottom: '20px', color: '#1f2937' }}>🎨 Personalización de Tienda</h3>
-                  <ColorPicker colorActual={configCliente.colores.primario}   onColorChange={color => actualizarColoresCliente(color, 'primario')}   titulo="Color Principal" />
-                  <ColorPicker colorActual={configCliente.colores.secundario} onColorChange={color => actualizarColoresCliente(color, 'secundario')} titulo="Color Secundario" />
-                  <ColorPicker colorActual={configCliente.colores.acento}     onColorChange={color => actualizarColoresCliente(color, 'acento')}     titulo="Color de Acento" />
-                  <div style={{ marginTop: '20px', padding: '16px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                    <p style={{ fontSize: '14px', fontWeight: '500', marginBottom: '12px', color: '#6b7280' }}>Vista previa:</p>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                      {[
-                        { label: 'Primario',   color: configCliente.colores.primario },
-                        { label: 'Secundario', color: configCliente.colores.secundario },
-                        { label: 'Acento',     color: configCliente.colores.acento },
-                      ].map(({ label, color }) => (
-                        <button key={label} style={{ flex: 1, padding: '12px', backgroundColor: color, color: 'white', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'default' }}>
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '40px' }}>
-                <p>Cargando estadísticas...</p>
-              </div>
-            )}
-          </div>
+      {/* PANEL ADMIN — página completa */}
+      {mostrarPanelAdmin && usuarioLogueado && (usuarioLogueado.tipo === 'vendedor' || usuarioLogueado.tipo === 'admin') && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 3000, overflowY: 'auto', background: '#f5f5f5' }}>
+          <PanelAdmin
+            token={localStorage.getItem('hgw_token')}
+            onCerrarSesion={() => {
+              setMostrarPanelAdmin(false);
+              setUsuarioLogueado(null);
+              localStorage.removeItem('hgw_token');
+              localStorage.removeItem('hgw_usuario');
+            }}
+          />
         </div>
       )}
 
@@ -1106,7 +1011,7 @@ function App() {
               <h4 style={{ fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>Síguenos</h4>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 {[
-                  { nombre: 'WhatsApp',  url: 'https://wa.me/573159715768', emoji: '💬', bg: '#25D366' },
+                  { nombre: 'WhatsApp',  url: 'https://wa.me/573001234567', emoji: '💬', bg: '#25D366' },
                   { nombre: 'Instagram', url: 'https://instagram.com/hgwstore', emoji: '📸', bg: '#E1306C' },
                   { nombre: 'Facebook',  url: 'https://facebook.com/hgwstore',  emoji: '👍', bg: '#1877F2' },
                   { nombre: 'TikTok',    url: 'https://tiktok.com/@hgwstore',   emoji: '🎵', bg: '#000000' },
