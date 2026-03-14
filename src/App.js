@@ -16,6 +16,10 @@ import './App.css';
 import ColorPicker from './ColorPicker';
 import AsistenteIA from './AsistenteIA';
 import PanelAdmin from './PanelAdmin';
+import PanelVendedor from './PanelVendedor';
+import PanelVendedor from './PanelVendedor';
+import PanelVendedor from './PanelVendedor';
+import PanelVendedor from './PanelVendedor';
 
 // FIX 5: URL base de la API centralizada para fácil cambio en producción
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -30,6 +34,7 @@ function App() {
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todas');
   const [productoSeleccionado, setProductoSeleccionado]   = useState(null);
   const [slideActual, setSlideActual]                 = useState(0);
+  const [bannerSlides, setBannerSlides]               = useState([]);
   const [carrito, setCarrito]                         = useState([]);
   const [mostrarCarrito, setMostrarCarrito]           = useState(false);
   const [mostrarChat, setMostrarChat]                 = useState(false);
@@ -37,11 +42,12 @@ function App() {
   const [conversacion, setConversacion]               = useState([]);
   const [cargandoIA, setCargandoIA]                   = useState(false);
   const [mostrarCheckout, setMostrarCheckout]         = useState(false);
-  const [datosCliente, setDatosCliente]               = useState({ nombre: '', email: '', telefono: '', direccion: '' });
+  const [datosCliente, setDatosCliente]               = useState({ nombre: '', email: '', telefono: '', cedula: '', direccion: '', ciudad: '' });
   const [pagoCompletado, setPagoCompletado]           = useState(false);
   const [datosPago, setDatosPago]                     = useState(null);
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [mostrarPanelAdmin, setMostrarPanelAdmin]     = useState(false);
+  const [mostrarPanelVendedor, setMostrarPanelVendedor] = useState(false);
   const [estadisticas, setEstadisticas]               = useState(null);
   const [clienteActual, setClienteActual]             = useState(null);
 
@@ -52,6 +58,7 @@ function App() {
   const [regEmail, setRegEmail]           = useState('');
   const [regTelefono, setRegTelefono]     = useState('');
   const [regPassword, setRegPassword]     = useState('');
+  const [regCedula, setRegCedula]         = useState('');
 
   const [configCliente, setConfigCliente] = useState({
     colores: {
@@ -114,6 +121,12 @@ function App() {
       .catch(err => console.error('Error categorías:', err));
 
     cargarProductos('Todas');
+
+    // Cargar slides del banner
+    fetch(`${API_BASE}/api/banner`)
+      .then(r => r.json())
+      .then(d => { if (d.slides) setBannerSlides(d.slides); })
+      .catch(() => {});
 
     const script  = document.createElement('script');
     script.src    = 'https://checkout.wompi.co/widget.js';
@@ -505,7 +518,7 @@ function App() {
     setMostrarConfirmacion(true);
     setCarrito([]);
     localStorage.removeItem('hgw_carrito');
-    setDatosCliente({ nombre: '', email: '', telefono: '', direccion: '' });
+    setDatosCliente({ nombre: '', email: '', telefono: '', cedula: '', direccion: '', ciudad: '' });
   };
 
   const descargarFactura = () => {
@@ -576,10 +589,16 @@ function App() {
               <span style={{ fontSize: '12px', background: 'rgba(255,255,255,0.15)', padding: '5px 10px', borderRadius: '20px' }}>
                 👋 <strong>{usuarioLogueado.nombre}</strong>
               </span>
-              {(usuarioLogueado.tipo === 'vendedor' || usuarioLogueado.tipo === 'admin') && (
+              {usuarioLogueado.tipo === 'admin' && (
                 <button onClick={() => { cargarEstadisticas(); setMostrarPanelAdmin(true); }}
                   style={{ background: '#FF9800', color: 'white', border: 'none', padding: '7px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' }}>
-                  {usuarioLogueado.tipo === 'admin' ? '⚙️ Panel Admin' : 'Panel Control'}
+                  ⚙️ Panel Admin
+                </button>
+              )}
+              {usuarioLogueado.tipo === 'vendedor' && (
+                <button onClick={() => setMostrarPanelVendedor(true)}
+                  style={{ background: '#FF9800', color: 'white', border: 'none', padding: '7px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' }}>
+                  💼 Mi Panel
                 </button>
               )}
               <button onClick={cerrarSesion}
@@ -592,32 +611,54 @@ function App() {
       </header>
 
       {/* SLIDER */}
-      {productosDestacados.length > 0 && (
-        <div style={{ position: 'relative', width: '100%', height: '400px', overflow: 'hidden', background: '#f5f5f5' }}>
-          {productosDestacados.map((producto, index) => (
-            <div key={producto.id}
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: slideActual === index ? 1 : 0, transition: 'opacity 1s ease-in-out', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #2d5016 0%, #4a7c25 100%)', cursor: 'pointer' }}
-              onClick={() => abrirModal(producto)}>
-              <div style={{ textAlign: 'center', color: 'white', padding: '40px', maxWidth: '800px' }}>
-                <span style={{ background: 'rgba(255,255,255,0.2)', padding: '8px 20px', borderRadius: '20px', fontSize: '14px', marginBottom: '20px', display: 'inline-block' }}>
-                  {producto.categoria}
-                </span>
-                <h2 style={{ fontSize: '48px', margin: '20px 0', textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>{producto.nombre}</h2>
-                <p style={{ fontSize: '20px', marginBottom: '30px', opacity: 0.9 }}>{producto.descripcion}</p>
-                <p style={{ fontSize: '36px', fontWeight: 'bold', marginBottom: '30px' }}>${producto.precio.toLocaleString()}</p>
-                <button style={{ background: 'white', color: '#2d5016', border: 'none', padding: '15px 40px', borderRadius: '30px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}
-                  onClick={(e) => { e.stopPropagation(); abrirModal(producto); }}>
-                  Ver Detalles
-                </button>
+      {(bannerSlides.length > 0 || productosDestacados.length > 0) && (
+        <div style={{ position: 'relative', width: '100%', height: '300px', overflow: 'hidden', background: '#2d5016' }}>
+          {bannerSlides.length > 0 ? (
+            // Slider con imágenes del banner
+            <>
+              {bannerSlides.map((slide, index) => (
+                <div key={slide.id} style={{
+                  position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                  opacity: slideActual === index ? 1 : 0, transition: 'opacity 1s ease-in-out',
+                }}>
+                  <img src={slide.imagen_url} alt={slide.categoria}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.6))', padding: '20px 30px' }}>
+                    <span style={{ color: 'white', fontSize: '22px', fontWeight: 'bold', textShadow: '1px 1px 3px rgba(0,0,0,0.5)' }}>
+                      {slide.categoria}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              <div style={{ position: 'absolute', bottom: '12px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px' }}>
+                {bannerSlides.map((_, index) => (
+                  <button key={index} onClick={() => setSlideActual(index)}
+                    style={{ width: slideActual === index ? '24px' : '8px', height: '8px', borderRadius: '4px', border: 'none', background: slideActual === index ? 'white' : 'rgba(255,255,255,0.5)', cursor: 'pointer', transition: 'all 0.3s' }} />
+                ))}
               </div>
-            </div>
-          ))}
-          <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '10px' }}>
-            {productosDestacados.map((_, index) => (
-              <button key={index} onClick={() => setSlideActual(index)}
-                style={{ width: slideActual === index ? '30px' : '10px', height: '10px', borderRadius: '5px', border: 'none', background: slideActual === index ? 'white' : 'rgba(255,255,255,0.5)', cursor: 'pointer', transition: 'all 0.3s' }} />
-            ))}
-          </div>
+            </>
+          ) : (
+            // Slider con productos si no hay banner configurado
+            <>
+              {productosDestacados.map((producto, index) => (
+                <div key={producto.id}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: slideActual === index ? 1 : 0, transition: 'opacity 1s ease-in-out', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #2d5016 0%, #4a7c25 100%)', cursor: 'pointer' }}
+                  onClick={() => abrirModal(producto)}>
+                  <div style={{ textAlign: 'center', color: 'white', padding: '20px', maxWidth: '800px' }}>
+                    <h2 style={{ fontSize: 'clamp(20px, 4vw, 36px)', margin: '10px 0' }}>{producto.nombre}</h2>
+                    <p style={{ fontSize: '16px', marginBottom: '10px', opacity: 0.9 }}>{producto.descripcion}</p>
+                    <p style={{ fontSize: '28px', fontWeight: 'bold' }}>${producto.precio?.toLocaleString()}</p>
+                  </div>
+                </div>
+              ))}
+              <div style={{ position: 'absolute', bottom: '12px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px' }}>
+                {productosDestacados.map((_, index) => (
+                  <button key={index} onClick={() => setSlideActual(index)}
+                    style={{ width: slideActual === index ? '24px' : '8px', height: '8px', borderRadius: '4px', border: 'none', background: slideActual === index ? 'white' : 'rgba(255,255,255,0.5)', cursor: 'pointer', transition: 'all 0.3s' }} />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -752,9 +793,11 @@ function App() {
             <div style={{ padding: '30px' }}>
               <h3 style={{ color: '#2d5016', marginBottom: '20px' }}>Información del Cliente</h3>
               {[
-                { label: 'Nombre Completo *', field: 'nombre', type: 'text',     placeholder: 'Juan Pérez' },
-                { label: 'Email *',           field: 'email',  type: 'email',    placeholder: 'juan@email.com' },
-                { label: 'Teléfono *',        field: 'telefono', type: 'tel',    placeholder: '3001234567' },
+                { label: 'Nombre Completo *',        field: 'nombre',   type: 'text',  placeholder: 'Juan Pérez' },
+                { label: 'Email *',                  field: 'email',    type: 'email', placeholder: 'juan@email.com' },
+                { label: 'Teléfono *',               field: 'telefono', type: 'tel',   placeholder: '3001234567' },
+                { label: 'Cédula de Ciudadanía *',   field: 'cedula',   type: 'text',  placeholder: '1234567890' },
+                { label: 'Ciudad *',                 field: 'ciudad',   type: 'text',  placeholder: 'Medellín' },
               ].map(({ label, field, type, placeholder }) => (
                 <div key={field} style={{ marginBottom: '15px' }}>
                   <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '14px' }}>{label}</label>
@@ -842,9 +885,15 @@ function App() {
                 </div>
               )}
             </div>
-            <button onClick={descargarFactura} style={{ background: '#2d5016', color: 'white', border: 'none', padding: '15px 30px', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', marginBottom: '15px', width: '100%' }}>
+            <button onClick={descargarFactura} style={{ background: '#2d5016', color: 'white', border: 'none', padding: '15px 30px', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', marginBottom: '10px', width: '100%' }}>
               📄 Descargar Factura PDF
             </button>
+            {usuarioLogueado && usuarioLogueado.tipo === 'vendedor' && (
+              <button onClick={() => { cerrarConfirmacion(); setMostrarPanelAdmin(true); }}
+                style={{ background: '#FF9800', color: 'white', border: 'none', padding: '12px 30px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', marginBottom: '10px', width: '100%' }}>
+                🛒 Realizar Otro Pedido
+              </button>
+            )}
             <button onClick={cerrarConfirmacion} style={{ background: 'white', color: '#2d5016', border: '2px solid #2d5016', padding: '12px 30px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', width: '100%' }}>
               Continuar Comprando
             </button>
@@ -931,11 +980,13 @@ function App() {
               style={{ width: '100%', padding: '12px', marginBottom: '10px', border: '1px solid #ddd', borderRadius: '8px', boxSizing: 'border-box' }} />
             <input type="tel" placeholder="Teléfono" value={regTelefono} onChange={e => setRegTelefono(e.target.value)}
               style={{ width: '100%', padding: '12px', marginBottom: '10px', border: '1px solid #ddd', borderRadius: '8px', boxSizing: 'border-box' }} />
+            <input type="text" placeholder="Cédula de Ciudadanía" value={regCedula} onChange={e => setRegCedula(e.target.value)}
+              style={{ width: '100%', padding: '12px', marginBottom: '10px', border: '1px solid #ddd', borderRadius: '8px', boxSizing: 'border-box' }} />
             <input type="password" placeholder="Contraseña" value={regPassword} onChange={e => setRegPassword(e.target.value)}
               style={{ width: '100%', padding: '12px', marginBottom: '20px', border: '1px solid #ddd', borderRadius: '8px', boxSizing: 'border-box' }} />
             <button onClick={() => {
               if (regNombre && regEmail && regTelefono && regPassword) {
-                registrarUsuario({ nombre: regNombre, email: regEmail, telefono: regTelefono, password: regPassword });
+                registrarUsuario({ nombre: regNombre, email: regEmail, telefono: regTelefono, cedula: regCedula, password: regPassword });
               } else {
                 alert('❌ Por favor completa todos los campos');
               }
@@ -950,13 +1001,31 @@ function App() {
         </div>
       )}
 
-      {/* PANEL ADMIN — página completa */}
-      {mostrarPanelAdmin && usuarioLogueado && (usuarioLogueado.tipo === 'vendedor' || usuarioLogueado.tipo === 'admin') && (
+
+      {/* PANEL ADMIN — solo admin */}
+      {mostrarPanelAdmin && usuarioLogueado?.tipo === 'admin' && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 3000, overflowY: 'auto', background: '#f5f5f5' }}>
           <PanelAdmin
             token={localStorage.getItem('hgw_token')}
             onCerrarSesion={() => {
               setMostrarPanelAdmin(false);
+              setUsuarioLogueado(null);
+              localStorage.removeItem('hgw_token');
+              localStorage.removeItem('hgw_usuario');
+            }}
+          />
+        </div>
+      )}
+
+      {/* PANEL VENDEDOR — solo vendedor */}
+      {mostrarPanelVendedor && usuarioLogueado?.tipo === 'vendedor' && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 3000, overflowY: 'auto', background: '#f5f5f5' }}>
+          <PanelVendedor
+            token={localStorage.getItem('hgw_token')}
+            usuario={usuarioLogueado}
+            productosDisponibles={productos}
+            onCerrarSesion={() => {
+              setMostrarPanelVendedor(false);
               setUsuarioLogueado(null);
               localStorage.removeItem('hgw_token');
               localStorage.removeItem('hgw_usuario');

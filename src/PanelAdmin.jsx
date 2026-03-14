@@ -28,6 +28,8 @@ export default function PanelAdmin({ token, onCerrarSesion }) {
   const [cargando, setCargando]     = useState(false);
   const [busqueda, setBusqueda]     = useState('');
   const [subiendo, setSubiendo]     = useState(false);
+  const [slides, setSlides]         = useState([]);
+  const [subiendoBanner, setSubiendoBanner] = useState(false);
 
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
@@ -55,6 +57,11 @@ export default function PanelAdmin({ token, onCerrarSesion }) {
         const r = await fetch(`${API_URL}/api/admin/usuarios`, { headers });
         const d = await r.json();
         setUsuarios(d.usuarios || []);
+      }
+      if (seccion === 'banner') {
+        const r = await fetch(`${API_URL}/api/banner`, { headers });
+        const d = await r.json();
+        setSlides(d.slides || []);
       }
     } catch (e) {
       mostrarMsg('Error cargando datos', false);
@@ -151,6 +158,7 @@ export default function PanelAdmin({ token, onCerrarSesion }) {
           { id: 'estadisticas', label: '📊 Estadísticas' },
           { id: 'productos',    label: '📦 Productos' },
           { id: 'usuarios',     label: '👥 Usuarios' },
+          { id: 'banner',       label: '🖼️ Banner' },
         ].map(tab => (
           <button key={tab.id} onClick={() => { setSeccion(tab.id); setEditando(null); setForm(productoVacio); }}
             style={{
@@ -380,6 +388,77 @@ export default function PanelAdmin({ token, onCerrarSesion }) {
                 {usuarios.length === 0 && <p style={{ textAlign: 'center', color: '#888', padding: '20px' }}>No hay usuarios</p>}
               </div>
             )}
+          </div>
+        )}
+
+
+        {/* ── BANNER ── */}
+        {seccion === 'banner' && (
+          <div>
+            <h2 style={{ color: VERDE, marginTop: 0 }}>🖼️ Imágenes del Banner</h2>
+            <p style={{ color: '#666', marginBottom: '20px' }}>Una imagen por categoría. Tamaño recomendado: 1200x400px</p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+              {['Suplementos', 'Accesorios', 'Alimentos y Bebidas', 'Cuidado Personal'].map((cat, idx) => {
+                const slide = slides.find(s => s.categoria === cat);
+                return (
+                  <div key={cat} style={{ background: 'white', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
+                    {slide?.imagen_url ? (
+                      <img src={slide.imagen_url} alt={cat} style={{ width: '100%', height: '160px', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ width: '100%', height: '160px', background: '#f0f7f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '14px' }}>
+                        Sin imagen
+                      </div>
+                    )}
+                    <div style={{ padding: '14px' }}>
+                      <div style={{ fontWeight: 'bold', color: VERDE, marginBottom: '10px' }}>{cat}</div>
+                      <input type="file" accept="image/*" id={`banner-${idx}`} style={{ display: 'none' }}
+                        onChange={async (e) => {
+                          const archivo = e.target.files[0];
+                          if (!archivo) return;
+                          setSubiendoBanner(true);
+                          try {
+                            const fd = new FormData();
+                            fd.append('file', archivo);
+                            const r = await fetch(`${API_URL}/api/upload/imagen`, {
+                              method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd,
+                            });
+                            const d = await r.json();
+                            if (d.success) {
+                              const method = slide ? 'PUT' : 'POST';
+                              const url = slide ? `${API_URL}/api/banner/${slide.id}` : `${API_URL}/api/banner`;
+                              await fetch(url, {
+                                method, headers: { ...headers },
+                                body: JSON.stringify({ categoria: cat, imagen_url: d.url, orden: idx }),
+                              });
+                              mostrarMsg(`Imagen de ${cat} actualizada ✅`);
+                              cargarDatos();
+                            }
+                          } catch { mostrarMsg('Error al subir', false); }
+                          finally { setSubiendoBanner(false); }
+                        }}
+                      />
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <label htmlFor={`banner-${idx}`}
+                          style={{ background: VERDE, color: 'white', padding: '7px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
+                          {subiendoBanner ? '⏳' : '📷'} {slide ? 'Cambiar' : 'Subir imagen'}
+                        </label>
+                        {slide && (
+                          <button onClick={async () => {
+                            await fetch(`${API_URL}/api/banner/${slide.id}`, { method: 'DELETE', headers });
+                            mostrarMsg('Imagen eliminada');
+                            cargarDatos();
+                          }}
+                          style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #dc2626', padding: '7px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px' }}>
+                            🗑
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
