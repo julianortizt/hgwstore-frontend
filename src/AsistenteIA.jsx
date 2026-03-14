@@ -6,7 +6,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 
-const ADMIN_WHATSAPP = '573159715768';
+const ADMIN_WHATSAPP = '573001234567';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 const DOLENCIAS_HGW = {
@@ -164,42 +164,58 @@ export default function AsistenteIA({ productos = [], configCliente = {}, onAgre
   const descargarGuia = () => {
     setDescargando(true);
     try {
-      let txt = '====================================================\n';
-      txt += '       HGW STORE — GUÍA DE BENEFICIOS\n';
-      txt += '       Health, Growth & Wellness\n';
-      txt += '====================================================\n\n';
-      txt += 'IMPORTANTE: Productos naturales que complementan\nun estilo de vida saludable. No reemplazan tratamientos médicos.\n';
+      // Generar HTML para imprimir como PDF
+      let html = `
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Guía de Beneficios HGW Store</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 30px; color: #222; }
+            h1 { color: #2d5016; text-align: center; border-bottom: 3px solid #2d5016; padding-bottom: 10px; }
+            h2 { color: #2d5016; margin-top: 24px; background: #e8f5e9; padding: 8px 12px; border-radius: 6px; }
+            h3 { color: #1b5e20; margin-top: 16px; }
+            .producto { background: #f9f9f9; padding: 8px 12px; border-left: 3px solid #2d5016; margin: 6px 0; border-radius: 4px; }
+            .dolencia { margin: 4px 0; padding: 4px 8px; }
+            .prods { color: #2d5016; font-weight: bold; }
+            .nota { background: #fff8e1; padding: 10px; border-radius: 6px; font-size: 12px; margin-bottom: 20px; }
+            .catalogo-item { border-bottom: 1px solid #eee; padding: 8px 0; }
+            @media print { body { padding: 15px; } }
+          </style>
+        </head>
+        <body>
+          <h1>🌿 HGW Store — Guía de Beneficios</h1>
+          <p style="text-align:center; color:#666;">Health, Growth & Wellness</p>
+          <div class="nota">⚠️ Estos productos son naturales y complementan un estilo de vida saludable. No reemplazan tratamientos médicos.</div>
+      `;
 
       Object.entries(DOLENCIAS_HGW).forEach(([sistema, { emoji, dolencias }]) => {
-        txt += `\n${'='.repeat(48)}\n${emoji}  ${sistema.toUpperCase()}\n${'='.repeat(48)}\n`;
+        html += `<h2>${emoji} ${sistema}</h2>`;
         Object.entries(dolencias).forEach(([dolencia, prods]) => {
-          txt += `\n• ${dolencia}\n  → ${prods.join(', ')}\n`;
+          html += `<div class="dolencia">• <strong>${dolencia}</strong><br><span class="prods">→ ${prods.join(', ')}</span></div>`;
         });
       });
 
       if (productos.length > 0) {
-        txt += `\n${'='.repeat(48)}\n          CATÁLOGO DE PRODUCTOS\n${'='.repeat(48)}\n`;
+        html += `<h2>📦 Catálogo de Productos</h2>`;
         productos.forEach(p => {
-          txt += `\n► ${p.nombre}  —  $${p.precio?.toLocaleString()} COP\n`;
-          if (p.descripcion) txt += `  ${p.descripcion}\n`;
-          if (p.beneficios)  txt += `  Beneficios: ${p.beneficios}\n`;
+          html += `<div class="catalogo-item"><strong>${p.nombre}</strong> — <span style="color:#2d5016">$${p.precio?.toLocaleString()} COP</span>`;
+          if (p.descripcion) html += `<br><small>${p.descripcion}</small>`;
+          html += `</div>`;
         });
       }
-      txt += '\n====================================================\n¡Gracias por confiar en HGW Store!\n';
 
-      const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = 'Guia_Beneficios_HGW.txt';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      html += `<p style="text-align:center; margin-top:30px; color:#888; font-size:12px;">¡Gracias por confiar en HGW Store!</p></body></html>`;
+
+      const ventana = window.open('', '_blank');
+      ventana.document.write(html);
+      ventana.document.close();
+      ventana.focus();
+      setTimeout(() => { ventana.print(); ventana.close(); }, 500);
 
       setMensajes(prev => [...prev, {
         rol: 'asistente',
-        texto: '📄 ¡Listo! La guía se descargó en tu carpeta de Descargas.\n\nTiene los 11 sistemas del cuerpo, 36 dolencias y todos los productos recomendados. 🌿',
+        texto: '📄 ¡Listo! Se abrió la guía para guardar como PDF. En el diálogo de impresión selecciona "Guardar como PDF". 🌿',
         timestamp: new Date(),
       }]);
     } catch (e) {
