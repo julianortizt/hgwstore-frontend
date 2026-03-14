@@ -17,9 +17,6 @@ import ColorPicker from './ColorPicker';
 import AsistenteIA from './AsistenteIA';
 import PanelAdmin from './PanelAdmin';
 import PanelVendedor from './PanelVendedor';
-import PanelVendedor from './PanelVendedor';
-import PanelVendedor from './PanelVendedor';
-import PanelVendedor from './PanelVendedor';
 
 // FIX 5: URL base de la API centralizada para fácil cambio en producción
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
