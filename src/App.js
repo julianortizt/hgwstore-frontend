@@ -48,7 +48,6 @@ function App() {
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [mostrarPanelAdmin, setMostrarPanelAdmin]     = useState(false);
   const [mostrarPanelVendedor, setMostrarPanelVendedor] = useState(false);
-  const [mostrarPanelVendedor, setMostrarPanelVendedor] = useState(false);
   const [estadisticas, setEstadisticas]               = useState(null);
   const [clienteActual, setClienteActual]             = useState(null);
 
