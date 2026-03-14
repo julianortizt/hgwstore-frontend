@@ -48,6 +48,7 @@ function App() {
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [mostrarPanelAdmin, setMostrarPanelAdmin]     = useState(false);
   const [mostrarPanelVendedor, setMostrarPanelVendedor] = useState(false);
+  const [mostrarPanelVendedor, setMostrarPanelVendedor] = useState(false);
   const [estadisticas, setEstadisticas]               = useState(null);
   const [clienteActual, setClienteActual]             = useState(null);
 
@@ -542,71 +543,75 @@ function App() {
       {/* HEADER */}
       <header style={{
         background: `linear-gradient(135deg, ${configCliente.colores.primario} 0%, ${configCliente.colores.secundario} 100%)`,
-        color: 'white', padding: '12px 16px', position: 'relative',
+        color: 'white', padding: '10px 16px', position: 'relative',
       }}>
-        {/* Fila 1: Logo + Carrito */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Una sola fila: Logo | Botones | Carrito */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+          
+          {/* Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
             {configCliente.logo_url && (
               <img src={`${API_BASE}${configCliente.logo_url}`} alt={configCliente.nombre}
-                style={{ height: '40px', width: 'auto' }} />
+                style={{ height: '36px', width: 'auto' }} />
             )}
             <div>
-              <h1 style={{ margin: 0, fontSize: 'clamp(18px, 4vw, 26px)' }}>🌿 {configCliente.nombre}</h1>
-              <p style={{ margin: 0, fontSize: '11px', opacity: 0.85 }}>Health, Growth & Wellness</p>
+              <h1 style={{ margin: 0, fontSize: 'clamp(14px, 3.5vw, 22px)', lineHeight: 1.2 }}>🌿 {configCliente.nombre}</h1>
+              <p style={{ margin: 0, fontSize: '10px', opacity: 0.85 }}>Health, Growth & Wellness</p>
             </div>
           </div>
+
+          {/* Botones centro */}
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center', flex: 1 }}>
+            {!usuarioLogueado ? (
+              <>
+                <button onClick={() => { setTipoRegistro('vendedor'); setMostrarRegistro(true); }}
+                  style={{ background: '#FF9800', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  💼 Hazte Vendedor
+                </button>
+                <button onClick={() => { setTipoRegistro('cliente'); setMostrarRegistro(true); }}
+                  style={{ background: 'white', color: configCliente.colores.primario, border: 'none', padding: '6px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  👤 Registro
+                </button>
+                <button onClick={() => setMostrarLogin(true)}
+                  style={{ background: 'transparent', color: 'white', border: '1px solid white', padding: '6px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  🔐 Iniciar Sesión
+                </button>
+              </>
+            ) : (
+              <>
+                <span style={{ fontSize: '11px', background: 'rgba(255,255,255,0.15)', padding: '4px 8px', borderRadius: '20px', whiteSpace: 'nowrap' }}>
+                  👋 <strong>{usuarioLogueado.nombre.split(' ')[0]}</strong>
+                </span>
+                {usuarioLogueado.tipo === 'admin' && (
+                  <button onClick={() => { cargarEstadisticas(); setMostrarPanelAdmin(true); }}
+                    style={{ background: '#FF9800', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                    ⚙️ Panel Admin
+                  </button>
+                )}
+                {usuarioLogueado.tipo === 'vendedor' && (
+                  <button onClick={() => setMostrarPanelVendedor(true)}
+                    style={{ background: '#FF9800', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                    💼 Mi Panel
+                  </button>
+                )}
+                <button onClick={cerrarSesion}
+                  style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.6)', padding: '6px 10px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  Salir
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Carrito */}
           <button onClick={() => setMostrarCarrito(true)}
-            style={{ background: 'white', color: configCliente.colores.primario, border: 'none', borderRadius: '50%', width: '46px', height: '46px', fontSize: '20px', cursor: 'pointer', boxShadow: '0 4px 8px rgba(0,0,0,0.2)', position: 'relative', flexShrink: 0 }}>
+            style={{ background: 'white', color: configCliente.colores.primario, border: 'none', borderRadius: '50%', width: '42px', height: '42px', fontSize: '18px', cursor: 'pointer', boxShadow: '0 4px 8px rgba(0,0,0,0.2)', position: 'relative', flexShrink: 0 }}>
             🛒
             {cantidadTotal > 0 && (
-              <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'red', color: 'white', borderRadius: '50%', width: '18px', height: '18px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+              <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'red', color: 'white', borderRadius: '50%', width: '16px', height: '16px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
                 {cantidadTotal}
               </span>
             )}
           </button>
-        </div>
-
-        {/* Fila 2: Botones de sesión */}
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-          {!usuarioLogueado ? (
-            <>
-              <button onClick={() => { setTipoRegistro('vendedor'); setMostrarRegistro(true); }}
-                style={{ background: '#FF9800', color: 'white', border: 'none', padding: '7px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
-                💼 Hazte Vendedor
-              </button>
-              <button onClick={() => { setTipoRegistro('cliente'); setMostrarRegistro(true); }}
-                style={{ background: 'white', color: configCliente.colores.primario, border: 'none', padding: '7px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
-                👤 Registro Cliente
-              </button>
-              <button onClick={() => setMostrarLogin(true)}
-                style={{ background: 'transparent', color: 'white', border: '2px solid white', padding: '7px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
-                🔐 Iniciar Sesión
-              </button>
-            </>
-          ) : (
-            <>
-              <span style={{ fontSize: '12px', background: 'rgba(255,255,255,0.15)', padding: '5px 10px', borderRadius: '20px' }}>
-                👋 <strong>{usuarioLogueado.nombre}</strong>
-              </span>
-              {usuarioLogueado.tipo === 'admin' && (
-                <button onClick={() => { cargarEstadisticas(); setMostrarPanelAdmin(true); }}
-                  style={{ background: '#FF9800', color: 'white', border: 'none', padding: '7px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' }}>
-                  ⚙️ Panel Admin
-                </button>
-              )}
-              {usuarioLogueado.tipo === 'vendedor' && (
-                <button onClick={() => setMostrarPanelVendedor(true)}
-                  style={{ background: '#FF9800', color: 'white', border: 'none', padding: '7px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' }}>
-                  💼 Mi Panel
-                </button>
-              )}
-              <button onClick={cerrarSesion}
-                style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.6)', padding: '7px 12px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer' }}>
-                Salir
-              </button>
-            </>
-          )}
         </div>
       </header>
 
